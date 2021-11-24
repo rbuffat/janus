@@ -7,7 +7,8 @@ from collections import deque
 from heapq import heappop, heappush
 from queue import Empty as SyncQueueEmpty
 from queue import Full as SyncQueueFull
-from typing import Any, Callable, Deque, Generic, List, Optional, Protocol, Set, TypeVar
+from typing import Any, Callable, Deque, Generic, List, Optional, Set, TypeVar
+from typing_extensions import Protocol
 
 __version__ = "0.6.2"
 __all__ = ("Queue", "PriorityQueue", "LifoQueue")
@@ -17,7 +18,7 @@ T = TypeVar("T")
 OptFloat = Optional[float]
 
 
-class _Queue(Protocol[T]):
+class BaseQueue(Protocol[T]):
 
     @property
     def maxsize(self) -> int:
@@ -50,7 +51,38 @@ class _Queue(Protocol[T]):
         ...
 
 
-class SyncQueue(_Queue, Protocol[T]):
+class SyncQueue(BaseQueue[T], Protocol[T]):
+
+    @property
+    def maxsize(self) -> int:
+        ...
+
+    @property
+    def closed(self) -> bool:
+        ...
+
+    def task_done(self) -> None:
+        ...
+
+    def qsize(self) -> int:
+        ...
+
+    @property
+    def unfinished_tasks(self) -> int:
+        ...
+
+    def empty(self) -> bool:
+        ...
+
+    def full(self) -> bool:
+        ...
+
+    def put_nowait(self, item: T) -> None:
+        ...
+
+    def get_nowait(self) -> T:
+        ...
+
 
     def put(self, item: T, block: bool = True, timeout: OptFloat = None) -> None:
         ...
@@ -63,7 +95,7 @@ class SyncQueue(_Queue, Protocol[T]):
 
 
 
-class AsyncQueue(_Queue, Protocol[T]):
+class AsyncQueue(BaseQueue[T], Protocol[T]):
 
 
     async def put(self, item: T) -> None:
